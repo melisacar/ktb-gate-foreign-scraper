@@ -3,6 +3,7 @@ import urllib3
 import requests
 import re
 from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 
 
 # Mapping months
@@ -44,13 +45,28 @@ def extract_year_month(date_info):
     print(f"Invalid date_info format: {date_info}")
     return None
 
+def find_pdf_links_with_base_url(html_content, base_url):
+    """HTML içeriğinden sadece .pdf uzantılı linkleri bulur ve base_url ile birleştirir."""
+    soup = BeautifulSoup(html_content, "html.parser")
+    pdf_links = []  # PDF linklerini tutacak liste
+
+    for element in soup.find_all('a'):
+        href = element.get('href')
+        if href and '.pdf' in href:  
+            clean_href = href.split('?')[0]
+            full_url = urljoin(base_url, clean_href)
+            pdf_links.append(full_url)  # Tam URL'yi listeye ekle
+            print(f"Full PDF URL: {full_url}")  # Konsola yazdır
+
+    return pdf_links
+
 def find_month_html(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     year_months = []
 
     for element in soup.find_all('a'):
         href = element.get('href')
-        if href:  # Eğer href varsa yazdır
+        if href and '.pdf' in href:
             print(f"Found href: {href}")
 
         if href and '.pdf' in href and extract_year_month(element.get_text()):
@@ -58,18 +74,16 @@ def find_month_html(html_content):
 
     return year_months
 
-
-
 url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
+base_url = "https://istanbul.ktb.gov.tr"
 
 content = fetch_page_content(url)
 if content:
-    print("ok")
-
+    print("Page fetched successfully.")
+    pdf_linkss = find_pdf_links_with_base_url(content, base_url)
+    print(f"Combined PDF Links: {pdf_linkss}")
 else:
     print("whops")
 
-
 result = find_month_html(content)
 print(f"Extracted Year-Months: {result}")
-
