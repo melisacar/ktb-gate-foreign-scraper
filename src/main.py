@@ -4,7 +4,8 @@ import requests
 import re
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-
+import pdfplumber
+from io import BytesIO
 
 # Mapping months
 months_mapping = {
@@ -74,6 +75,22 @@ def find_month_html(html_content):
 
     return year_months
 
+def read_pdf_simple(pdf_url, page_number):
+    try:
+        response = requests.get(pdf_url, verify=False)
+        response.raise_for_status()
+    
+        with pdfplumber.open(BytesIO(response.content)) as pdf:
+            page = pdf.pages[page_number]
+            table_txt = page.extract_text_simple()
+            if table_txt:
+                print(table_txt)
+            else:
+                print(f"Metin alınamadı")
+    except Exception as e:
+        print(f"Hata oluştu: {e}")
+
+
 url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
 base_url = "https://istanbul.ktb.gov.tr"
 
@@ -87,3 +104,8 @@ else:
 
 result = find_month_html(content)
 print(f"Extracted Year-Months: {result}")
+
+
+pdf_path = "https://istanbul.ktb.gov.tr/Eklenti/122498,ocak-2024-turizm-istatistik-raporupdf.pdf"
+page_number = 5  
+read_pdf_simple(pdf_path, page_number)
