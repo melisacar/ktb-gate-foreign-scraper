@@ -75,12 +75,16 @@ def find_month_html(html_content):
     return year_months
 
 def find_page_with_title(pdf_content, search_title):
+    matching_pages = []
     with pdfplumber.open(BytesIO(pdf_content)) as pdf:
         for i, page in enumerate(pdf.pages):
             text = page.extract_text_simple()
             text_dry = " ".join(text.split())
             if text and re.search(search_title, text_dry, re.IGNORECASE):
-                return i # Page number
+                matching_pages.append(i) # Append page numbers to a list.
+    
+    if len(matching_pages) >= 2:
+        return matching_pages[1] # Pick second match.
     return None
 
 def read_pdf_simple(pdf_url, search_title):
