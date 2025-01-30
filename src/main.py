@@ -47,17 +47,16 @@ def extract_year_month(date_info):
     return None
 
 def find_pdf_links_with_base_url(html_content, base_url):
-    """HTML içeriğinden sadece .pdf uzantılı linkleri bulur ve base_url ile birleştirir."""
     soup = BeautifulSoup(html_content, "html.parser")
-    pdf_links = []  # PDF linklerini tutacak liste
+    pdf_links = []
 
     for element in soup.find_all('a'):
         href = element.get('href')
         if href and '.pdf' in href:  
             clean_href = href.split('?')[0]
             full_url = urljoin(base_url, clean_href)
-            pdf_links.append(full_url)  # Tam URL'yi listeye ekle
-            print(f"Full PDF URL: {full_url}")  # Konsola yazdır
+            pdf_links.append(full_url)
+            print(f"Full PDF URL: {full_url}")
 
     return pdf_links
 
@@ -75,37 +74,56 @@ def find_month_html(html_content):
 
     return year_months
 
-def read_pdf_simple(pdf_url, page_number):
+def find_page_with_title(pdf_content, search_title):
+    with pdfplumber.open(BytesIO(pdf_content)) as pdf:
+        for i, page in enumerate(pdf.pages):
+            text = page.extract_text_simple()
+            text_dry = " ".join(text.split())
+            if text and re.search(search_title, text_dry, re.IGNORECASE):
+                return i # Page number
+    return None
+
+def read_pdf_simple(pdf_url, search_title):
     try:
         response = requests.get(pdf_url, verify=False)
         response.raise_for_status()
-    
-        with pdfplumber.open(BytesIO(response.content)) as pdf:
-            page = pdf.pages[page_number]
-            table_txt = page.extract_text_simple()
-            if table_txt:
-                print(table_txt)
-            else:
-                print(f"Metin alınamadı")
+        pdf_content = response.content
+
+        page_number = find_page_with_title(pdf_content, search_title)
+
+        if page_number is not None:
+            print(f"{search_title} header at {page_number+1}. page")
+            with pdfplumber.open(BytesIO(response.content)) as pdf:
+                page = pdf.pages[page_number]
+                table_txt = page.extract_text_simple()
+                if table_txt:
+                    print(table_txt)
+                else:
+                    print(f"Text could not retrieved")
+        else:
+            print(f"{search_title} cannot found")
     except Exception as e:
-        print(f"Hata oluştu: {e}")
+        print(f"Error raised: {e}")
 
 
-url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
-base_url = "https://istanbul.ktb.gov.tr"
+#url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
+#base_url = "https://istanbul.ktb.gov.tr"
 
-content = fetch_page_content(url)
-if content:
-    print("Page fetched successfully.")
-    pdf_linkss = find_pdf_links_with_base_url(content, base_url)
-    print(f"Combined PDF Links: {pdf_linkss}")
-else:
-    print("whops")
+#content = fetch_page_content(url)
+#if content:
+    
+#    page_text = find_page_with_title(content, search_title)
+#    print("\nSayfa İçeriği:\n", page_text)
+    #print("Page fetched successfully.")
+#    pdf_linkss = find_pdf_links_with_base_url(content, base_url)
+    #print(f"Combined PDF Links: {pdf_linkss}")
+#else:
+#    print("whops")
 
-result = find_month_html(content)
-print(f"Extracted Year-Months: {result}")
+#result = find_month_html(content)
+#print(f"Extracted Year-Months: {result}")
 
 
 pdf_path = "https://istanbul.ktb.gov.tr/Eklenti/122498,ocak-2024-turizm-istatistik-raporupdf.pdf"
-page_number = 5  
-read_pdf_simple(pdf_path, page_number)
+search_title = r"İSTANBUL’A GİRİŞ YAPAN YABANCI ZİYARETÇİLERİN SINIR KAPILARINA GÖRE DAĞILIMI"
+read_pdf_simple(pdf_path, search_title)
