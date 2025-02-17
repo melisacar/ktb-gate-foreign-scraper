@@ -66,8 +66,8 @@ def find_month_html(html_content):
 
     for element in soup.find_all('a'):
         href = element.get('href')
-        if href and '.pdf' in href:
-            print(f"Found href: {href}")
+        #if href and '.pdf' in href:
+            #print(f"Found href: {href}")
 
         if href and '.pdf' in href and extract_year_month(element.get_text()):
             year_months.append(extract_year_month(element.get_text()))
@@ -101,6 +101,7 @@ def read_pdf_simple(pdf_url, search_title):
                 page = pdf.pages[page_number]
                 table_txt = page.extract_text_simple()
                 if table_txt:
+                    #return table_txt
                     print(table_txt)
                 else:
                     print(f"Text could not retrieved")
@@ -110,10 +111,11 @@ def read_pdf_simple(pdf_url, search_title):
         print(f"Error raised: {e}")
 
 
-#url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
-#base_url = "https://istanbul.ktb.gov.tr"
+url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
+base_url = "https://istanbul.ktb.gov.tr"
 
-#content = fetch_page_content(url)
+content = fetch_page_content(url)
+
 #if content:
     
 #    page_text = find_page_with_title(content, search_title)
@@ -124,8 +126,8 @@ def read_pdf_simple(pdf_url, search_title):
 #else:
 #    print("whops")
 
-#result = find_month_html(content)
-#print(f"Extracted Year-Months: {result}")
+result = find_month_html(content)
+print(f"Extracted Year-Months: {result}")
 
 
 pdf_path = "https://istanbul.ktb.gov.tr/Eklenti/122498,ocak-2024-turizm-istatistik-raporupdf.pdf"
