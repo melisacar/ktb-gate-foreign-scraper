@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import pdfplumber
 from io import BytesIO
+import pandas as pd
 
 # Mapping months
 months_mapping = {
@@ -137,18 +138,36 @@ def extract_from_pdf(page_text, latest_month):
             if month_name in lines[i]:
                 month_num = int(month_str)
                 if month_num <= latest_month and month_name not in found_months:
-                    extracted_data.append(lines[i])  
+                    line_parts = lines[i].split()
+                    
+                    if len(line_parts) < 2:
+                        print(f"No data found for {month_name}!")
+                        continue
+                    
+                    extracted_data.append([month_name] + line_parts[1:])  # İlk eleman ay ismi olacak
                     found_months.append(month_name)  
 
                 if len(found_months) > 0 and found_months[-1] == month_name:
                     break
 
+    havalimanlari = [
+        "tarih", "Atatürk Havalimanı (H)", "S. Gökçen (H)", "İstanbul Havalimanı (H)", 
+        "Haydarpaşa (D)", "Karaköy (D)", "Sarayburnu (D)", "Marmara (D)", 
+        "Tuzla (D)", "Pendik (D)", "Ambarlı (D)", "Zeytinburnu (D)", "Toplam"
+    ]
+
     if extracted_data:
-        print("\nExtracted Monthly Data:")
-        for data in extracted_data:
-            print(data)
+        df = pd.DataFrame(extracted_data, columns=havalimanlari)
+
+        # *** MELT ***
+        df_melted = df.melt(id_vars=["tarih"], var_name="sinir_kapilari", value_name="deger")
+
+        print("\nMelted DataFrame:")
+        print(df_melted)
+        return df_melted
     else:
         print("No valid month data found.")
+        return None
 
 #url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
 #base_url = "https://istanbul.ktb.gov.tr"
