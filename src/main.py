@@ -101,14 +101,54 @@ def read_pdf_simple(pdf_url, search_title):
                 page = pdf.pages[page_number]
                 table_txt = page.extract_text_simple()
                 if table_txt:
-                    print(table_txt)
+                    #print(table_txt)
+                    return table_txt
                 else:
                     print(f"Text could not retrieved")
         else:
             print(f"{search_title} cannot found")
     except Exception as e:
         print(f"Error raised: {e}")
+    return None
 
+
+def extract_from_pdf(page_text, latest_month):
+    latest_month = int(latest_month)
+    if not page_text:
+        print("Page text couldn't retrieved.")
+        return
+    
+    lines = [line.strip() for line in page_text.split("\n") if line.strip()]
+
+    months_map = {
+            "Ocak": "01", "Şubat": "02", "Mart": "03", "Nisan": "04",
+            "Mayıs": "05", "Haziran": "06", "Temmuz": "07", "Ağustos": "08",
+            "Eylül": "09", "Ekim": "10", "Kasım": "11", "Aralık": "12"
+    }
+
+    toplam_indices = [i for i, line in enumerate(lines) if "TOPLAM" in line]
+    
+    toplam_index = toplam_indices[0]
+    extracted_data = []
+    found_months = []
+
+    for i in range(toplam_index - 1, -1, -1):
+        for month_name, month_str in months_map.items():
+            if month_name in lines[i]:
+                month_num = int(month_str)
+                if month_num <= latest_month and month_name not in found_months:
+                    extracted_data.append(lines[i])  
+                    found_months.append(month_name)  
+
+                if len(found_months) > 0 and found_months[-1] == month_name:
+                    break
+
+    if extracted_data:
+        print("\nExtracted Monthly Data:")
+        for data in extracted_data:
+            print(data)
+    else:
+        print("No valid month data found.")
 
 #url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
 #base_url = "https://istanbul.ktb.gov.tr"
@@ -130,4 +170,6 @@ def read_pdf_simple(pdf_url, search_title):
 
 pdf_path = "https://istanbul.ktb.gov.tr/Eklenti/122498,ocak-2024-turizm-istatistik-raporupdf.pdf"
 search_title = r"İSTANBUL’A GİRİŞ YAPAN YABANCI ZİYARETÇİLERİN SINIR KAPILARINA GÖRE DAĞILIMI"
-read_pdf_simple(pdf_path, search_title)
+latest_month = 12
+page_text = read_pdf_simple(pdf_path, search_title)
+extract_from_pdf(page_text, latest_month)
