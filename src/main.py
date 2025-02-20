@@ -112,6 +112,16 @@ def read_pdf_simple(pdf_url, search_title):
         print(f"Error raised: {e}")
     return None
 
+def year_from_page(page_text):
+    lines = [line.strip() for line in page_text.split("\n") if line.strip()]
+
+    for line in lines:
+        if "Toplam" in line:
+            year = line.split()[0]
+            return year
+    print("No 'Toplam' keyword found.")
+    return None
+
 
 def extract_from_pdf(page_text, latest_month):
     latest_month = int(latest_month)
@@ -120,7 +130,7 @@ def extract_from_pdf(page_text, latest_month):
         return
     
     lines = [line.strip() for line in page_text.split("\n") if line.strip()]
-
+    
     months_map = {
             "Ocak": "01", "Şubat": "02", "Mart": "03", "Nisan": "04",
             "Mayıs": "05", "Haziran": "06", "Temmuz": "07", "Ağustos": "08",
@@ -129,7 +139,13 @@ def extract_from_pdf(page_text, latest_month):
 
     toplam_indices = [i for i, line in enumerate(lines) if "TOPLAM" in line]
     
+    if not toplam_indices:
+        print("No 'TOPLAM' keyword found.")
+        return
+
     toplam_index = toplam_indices[0]
+    year = year_from_page(page_text)
+    
     extracted_data = []
     found_months = []
 
@@ -144,7 +160,8 @@ def extract_from_pdf(page_text, latest_month):
                         print(f"No data found for {month_name}!")
                         continue
                     
-                    extracted_data.append([month_name] + line_parts[1:])  # İlk eleman ay ismi olacak
+                    tarih = f"{year}-{month_str}-01"
+                    extracted_data.append([tarih] + line_parts[1:])
                     found_months.append(month_name)  
 
                 if len(found_months) > 0 and found_months[-1] == month_name:
@@ -160,7 +177,7 @@ def extract_from_pdf(page_text, latest_month):
         df = pd.DataFrame(extracted_data, columns=havalimanlari)
 
         # *** MELT ***
-        df_melted = df.melt(id_vars=["tarih"], var_name="sinir_kapilari", value_name="deger")
+        df_melted = df.melt(id_vars=["tarih"], var_name="sinir_kapilari", value_name="yabanci_ziyaretci")
 
         print("\nMelted DataFrame:")
         print(df_melted)
