@@ -204,8 +204,40 @@ def extract_from_pdf(page_text, latest_month):
 #print(f"Extracted Year-Months: {result}")
 
 
-pdf_path = "https://istanbul.ktb.gov.tr/Eklenti/122498,ocak-2024-turizm-istatistik-raporupdf.pdf"
-search_title = r"İSTANBUL’A GİRİŞ YAPAN YABANCI ZİYARETÇİLERİN SINIR KAPILARINA GÖRE DAĞILIMI"
-latest_month = 12
-page_text = read_pdf_simple(pdf_path, search_title)
-extract_from_pdf(page_text, latest_month)
+#pdf_path = "https://istanbul.ktb.gov.tr/Eklenti/122498,ocak-2024-turizm-istatistik-raporupdf.pdf"
+#search_title = r"İSTANBUL’A GİRİŞ YAPAN YABANCI ZİYARETÇİLERİN SINIR KAPILARINA GÖRE DAĞILIMI"
+#latest_month = 12
+#page_text = read_pdf_simple(pdf_path, search_title)
+#extract_from_pdf(page_text, latest_month)
+
+# Kullanıcıdan URL al
+base_url = "https://istanbul.ktb.gov.tr/"
+url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"  #
+html_content = fetch_page_content(url)
+
+if not html_content:
+    print("Cannot get content.")
+else:
+    pdf_links = find_pdf_links_with_base_url(html_content, base_url)
+
+    if not pdf_links:
+        print("No PDF found.")
+    else:
+        all_dataframes = []
+
+        for pdf_path in pdf_links:  # 
+            print(f"Processing: {pdf_path}")
+            page_text = read_pdf_simple(pdf_path, r"İSTANBUL’A GİRİŞ YAPAN YABANCI ZİYARETÇİLERİN SINIR KAPILARINA GÖRE DAĞILIMI")  #
+            
+            if page_text:
+                latest_month = "12"
+                df = extract_from_pdf(page_text, latest_month)
+                
+                if df is not None:
+                    df['source'] = pdf_path  # Delete this
+                    all_dataframes.append(df)
+
+        if all_dataframes:
+            final_df = pd.concat(all_dataframes, ignore_index=True)
+            print("All ok.")
+            print(final_df.head())
