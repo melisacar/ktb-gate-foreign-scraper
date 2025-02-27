@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  database:
+    container_name: "ktb-gate-foreign-database"
+    image: "postgres:latest"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=ktb-gate-foreign-scrape
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+volumes: 
+  pg-data:
