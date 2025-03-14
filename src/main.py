@@ -7,6 +7,11 @@ from urllib.parse import urljoin
 import pdfplumber
 from io import BytesIO
 import pandas as pd
+from sqlalchemy.orm import sessionmaker
+from models import ist_sinir_gelen_yabanci
+from sqlalchemy import extract
+from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 
 # Mapping months
 months_mapping = {
@@ -57,7 +62,7 @@ def find_pdf_links_with_base_url(html_content, base_url):
             clean_href = href.split('?')[0]
             full_url = urljoin(base_url, clean_href)
             pdf_links.append(full_url)
-            print(f"Full PDF URL: {full_url}")
+            #print(f"Full PDF URL: {full_url}")
 
     return pdf_links
 
@@ -68,7 +73,8 @@ def find_month_html(html_content):
     for element in soup.find_all('a'):
         href = element.get('href')
         if href and '.pdf' in href:
-            print(f"Found href: {href}")
+            pass
+            #print(f"Found href: {href}")
 
         if href and '.pdf' in href and extract_year_month(element.get_text()):
             year_months.append(extract_year_month(element.get_text()))
@@ -97,7 +103,7 @@ def read_pdf_simple(pdf_url, search_title):
         page_number = find_page_with_title(pdf_content, search_title)
 
         if page_number is not None:
-            print(f"{search_title} header at {page_number+1}. page")
+            #print(f"{search_title} header at {page_number+1}. page")
             with pdfplumber.open(BytesIO(response.content)) as pdf:
                 page = pdf.pages[page_number]
                 table_txt = page.extract_text_simple()
@@ -179,38 +185,46 @@ def extract_from_pdf(page_text, latest_month):
         # *** MELT ***
         df_melted = df.melt(id_vars=["tarih"], var_name="sinir_kapilari", value_name="yabanci_ziyaretci")
 
-        print("\nMelted DataFrame:")
-        print(df_melted)
+        #print("\nMelted DataFrame:")
+        #print(df_melted)
         return df_melted
     else:
         print("No valid month data found.")
         return None
 
-#url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"
-#base_url = "https://istanbul.ktb.gov.tr"
+def check_month_year_exitst(session, month, year):
+    exists = (
+        session.query(ist_sinir_gelen_yabanci)
+        .filter(
+            extract('month', ist_sinir_gelen_yabanci.tarih) == month,
+            extract('year', ist_sinir_gelen_yabanci.tarih) == year
+        )
+        .first()
+    )
+    return exists is not None
 
-#content = fetch_page_content(url)
-#if content:
-    
-#    page_text = find_page_with_title(content, search_title)
-#    print("\nSayfa İçeriği:\n", page_text)
-    #print("Page fetched successfully.")
-#    pdf_linkss = find_pdf_links_with_base_url(content, base_url)
-    #print(f"Combined PDF Links: {pdf_linkss}")
-#else:
-#    print("whops")
+def save_to_database(df, session):
+    for _, row in df.iterrows():
+        try:
+            yabanci_ziyaretci = float(str(row["yabanci_ziyaretci"]).replace(".","")) # Remove dot
 
-#result = find_month_html(content)
-#print(f"Extracted Year-Months: {result}")
+            new_record = ist_sinir_gelen_yabanci(
+                tarih = row["tarih"],
+                sinir_kapilari = str(row["sinir_kapilari"]),
+                yabanci_ziyaretci = yabanci_ziyaretci
+                erisim_tarihi=datetime.today().strftime("%Y-%m-%d")
+            )
+            session.add(new_record)
+            session.commit()
+        except ValueError:
+            print(f"Error converting yabanci_ziyaretci: {row['yabanci_ziyaretci']}. Skipping this row.")
+            session.rollback()
+        except IntegrityError:
+            print(f"Duplicate entry for date {row['tarih']}. Skipping...")
+            session.rollback()
+    print("Data added to the database.")                          
 
-
-#pdf_path = "https://istanbul.ktb.gov.tr/Eklenti/122498,ocak-2024-turizm-istatistik-raporupdf.pdf"
-#search_title = r"İSTANBUL’A GİRİŞ YAPAN YABANCI ZİYARETÇİLERİN SINIR KAPILARINA GÖRE DAĞILIMI"
-#latest_month = 12
-#page_text = read_pdf_simple(pdf_path, search_title)
-#extract_from_pdf(page_text, latest_month)
-
-# Kullanıcıdan URL al
+# URL
 base_url = "https://istanbul.ktb.gov.tr/"
 url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"  #
 html_content = fetch_page_content(url)
@@ -234,7 +248,7 @@ else:
                 df = extract_from_pdf(page_text, latest_month)
                 
                 if df is not None:
-                    df['source'] = pdf_path  # Delete this
+                    #df['source'] = pdf_path  # Delete this
                     all_dataframes.append(df)
 
         if all_dataframes:
