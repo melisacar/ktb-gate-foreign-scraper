@@ -211,7 +211,7 @@ def save_to_database(df, session):
             new_record = ist_sinir_gelen_yabanci(
                 tarih = row["tarih"],
                 sinir_kapilari = str(row["sinir_kapilari"]),
-                yabanci_ziyaretci = yabanci_ziyaretci
+                yabanci_ziyaretci = yabanci_ziyaretci,
                 erisim_tarihi=datetime.today().strftime("%Y-%m-%d")
             )
             session.add(new_record)
