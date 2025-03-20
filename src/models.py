@@ -10,9 +10,8 @@ Base = declarative_base()
 # Define the ist_sinir_gelen_yabanci table
 class ist_sinir_gelen_yabanci(Base):
     __tablename__ = 'ist_sinir_gelen_yabanci'
-    __tableargs__ = (UniqueConstraint('tarih', 'sinir_kapilari', 'yabanci_ziyaretci'),
-                 {'schema': 'etl'}
-                 )
+    __tableargs__ = (UniqueConstraint('tarih', 'sinir_kapilari', 'yabanci_ziyaretci', name = 'unique_ist_sinir_kapi_ziyaretci'),
+                 {'schema': 'etl'})
     id = Column(Integer, primary_key=True, autoincrement=True)
     tarih = Column(Date, nullable=True)
     sinir_kapilari = Column(String, nullable=True)
