@@ -12,6 +12,7 @@ from models import ist_sinir_gelen_yabanci
 from sqlalchemy import extract
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
+from models import engine
 
 # Mapping months
 months_mapping = {
@@ -222,36 +223,63 @@ def save_to_database(df, session):
         except IntegrityError:
             print(f"Duplicate entry for date {row['tarih']}. Skipping...")
             session.rollback()
-    print("Data added to the database.")                          
+    print("Data added to the database.")     
 
-# URL
-base_url = "https://istanbul.ktb.gov.tr/"
-url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"  #
-html_content = fetch_page_content(url)
+# Main script execution
+def main_02_02_ktb():
+    Session = sessionmaker(bind=engine)
+    session = Session()
 
-if not html_content:
-    print("Cannot get content.")
-else:
-    pdf_links = find_pdf_links_with_base_url(html_content, base_url)
+    # URL
+    base_url = "https://istanbul.ktb.gov.tr/"
+    url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"  #
+    html_content = fetch_page_content(url)
 
-    if not pdf_links:
-        print("No PDF found.")
-    else:
-        all_dataframes = []
+    if html_content:
+        
+        pdf_links = find_pdf_links_with_base_url(html_content, base_url)
 
-        for pdf_path in pdf_links:  # 
-            print(f"Processing: {pdf_path}")
-            page_text = read_pdf_simple(pdf_path, r"İSTANBUL’A GİRİŞ YAPAN YABANCI ZİYARETÇİLERİN SINIR KAPILARINA GÖRE DAĞILIMI")  #
-            
-            if page_text:
-                latest_month = "12"
-                df = extract_from_pdf(page_text, latest_month)
+        if not pdf_links:
+            print("No PDF found.")
+        else:
+            all_dataframes = []
+
+            for pdf_path in pdf_links:  # 
+                print(f"Processing: {pdf_path}")
+                page_text = read_pdf_simple(pdf_path, r"İSTANBUL’A GİRİŞ YAPAN YABANCI ZİYARETÇİLERİN SINIR KAPILARINA GÖRE DAĞILIMI")  #
                 
-                if df is not None:
-                    #df['source'] = pdf_path  # Delete this
-                    all_dataframes.append(df)
+                if page_text:
+                    latest_month = "12"
+                    df = extract_from_pdf(page_text, latest_month)
+                    
+                    if df is not None:
+                        #df['source'] = pdf_path  # Delete this
+                        all_dataframes.append(df)
 
-        if all_dataframes:
-            final_df = pd.concat(all_dataframes, ignore_index=True)
-            print("All ok.")
-            print(final_df.head())
+            if all_dataframes is not None:
+                final_df = pd.concat(all_dataframes, ignore_index=True)
+                print("All ok.")
+                #print(final_df.head())
+            
+                for _, row in final_df.iterrows():
+                    parsed_date = datetime.strptime(row['tarih'], "%Y-%m-%d")
+                    year = parsed_date.year
+                    month = parsed_date.month
+
+                    if check_month_year_exitst(session, month, year):
+                            print(f"Record already exists for {month}/{year}. Skipping...")
+                    else:
+                        print(f"New data for {month}/{year}. Adding to database...")
+                        save_to_database(final_df, session)
+            else:
+                print(f"Final dataframe could not prepared")
+    else:
+        print("Failed to fetch HTML content..")
+    session.close()
+    print("Database update complete.")
+
+#def run_main_02_02_ktb():
+    #main_02_02_ktb()
+
+if __name__ == "__main__":
+ main_02_02_ktb()
