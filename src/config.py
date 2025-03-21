@@ -1,5 +1,5 @@
 import os
-env = os.getenv("ENV", "docker")
+env = os.getenv("ENV", "local")
 
 if env == "local":
     DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:secret@localhost:5432/ktb-gate-foreign-scrape")
