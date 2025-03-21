@@ -7,6 +7,7 @@ services:
     ports:
       - "5432:5432"
     environment:
+      - ENV=docker 
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=ktb-gate-foreign-scrape
