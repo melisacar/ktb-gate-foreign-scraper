@@ -2205,3 +2205,17 @@
 [2025-03-25T11:31:40.396+0000] {logging_mixin.py:190} INFO - [2025-03-25T11:31:40.395+0000] {dag.py:3239} INFO - Sync 1 DAGs
 [2025-03-25T11:31:40.422+0000] {logging_mixin.py:190} INFO - [2025-03-25T11:31:40.421+0000] {dag.py:4180} INFO - Setting next_dagrun for 02_02_ktb_pipe_etl_ist_sinir_gelen_yabanci to 2025-03-25 03:00:00+00:00, run_after=2025-03-26 03:00:00+00:00
 [2025-03-25T11:31:40.445+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/02_02.py took 0.501 seconds
+[2025-03-25T11:32:11.037+0000] {processor.py:186} INFO - Started process (PID=18578) to work on /opt/airflow/dags/02_02.py
+[2025-03-25T11:32:11.038+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/02_02.py for tasks to queue
+[2025-03-25T11:32:11.040+0000] {logging_mixin.py:190} INFO - [2025-03-25T11:32:11.040+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/02_02.py
+[2025-03-25T11:32:11.454+0000] {processor.py:925} INFO - DAG(s) '02_02_ktb_pipe_etl_ist_sinir_gelen_yabanci' retrieved from /opt/airflow/dags/02_02.py
+[2025-03-25T11:32:11.470+0000] {logging_mixin.py:190} INFO - [2025-03-25T11:32:11.470+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2025-03-25T11:32:11.497+0000] {logging_mixin.py:190} INFO - [2025-03-25T11:32:11.497+0000] {dag.py:4180} INFO - Setting next_dagrun for 02_02_ktb_pipe_etl_ist_sinir_gelen_yabanci to 2025-03-25 03:00:00+00:00, run_after=2025-03-26 03:00:00+00:00
+[2025-03-25T11:32:11.522+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/02_02.py took 0.496 seconds
+[2025-03-25T11:32:42.197+0000] {processor.py:186} INFO - Started process (PID=18636) to work on /opt/airflow/dags/02_02.py
+[2025-03-25T11:32:42.198+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/02_02.py for tasks to queue
+[2025-03-25T11:32:42.200+0000] {logging_mixin.py:190} INFO - [2025-03-25T11:32:42.199+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/02_02.py
+[2025-03-25T11:32:42.644+0000] {processor.py:925} INFO - DAG(s) '02_02_ktb_pipe_etl_ist_sinir_gelen_yabanci' retrieved from /opt/airflow/dags/02_02.py
+[2025-03-25T11:32:42.664+0000] {logging_mixin.py:190} INFO - [2025-03-25T11:32:42.664+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2025-03-25T11:32:42.693+0000] {logging_mixin.py:190} INFO - [2025-03-25T11:32:42.693+0000] {dag.py:4180} INFO - Setting next_dagrun for 02_02_ktb_pipe_etl_ist_sinir_gelen_yabanci to 2025-03-25 03:00:00+00:00, run_after=2025-03-26 03:00:00+00:00
+[2025-03-25T11:32:42.718+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/02_02.py took 0.529 seconds
