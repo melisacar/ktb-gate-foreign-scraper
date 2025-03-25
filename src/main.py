@@ -180,7 +180,18 @@ def extract_from_pdf(page_text, latest_month):
         "Tuzla (D)", "Pendik (D)", "Ambarlı (D)", "Zeytinburnu (D)", "Toplam"
     ]
 
+##################
     if extracted_data:
+        # Check column number
+        for idx, row in enumerate(extracted_data):
+            print(f"Row {idx}: {row} (Columns: {len(row)})")
+
+        # Add error
+        expected_columns = len(havalimanlari)
+        for idx, row in enumerate(extracted_data):
+            if len(row) != expected_columns:
+                print(f"❌ Error! Row {idx}: {row} (Expected: {expected_columns}, Available: {len(row)})")
+
         df = pd.DataFrame(extracted_data, columns=havalimanlari)
 
         # *** MELT ***
@@ -225,6 +236,23 @@ def save_to_database(df, session):
             session.rollback()
     print("Data added to the database.")     
 
+def find_yearly_pages(base_url):
+    html_content = fetch_page_content(base_url)
+    if not html_content:
+        return []
+    
+    soup = BeautifulSoup(html_content, "html.parser")
+    yearly_pages = {}
+
+    for link in soup.find_all('a', href=True):
+        match = re.search(r"(\d{4})", link.get_text())
+        if match:
+            year = int(match.group(1))
+            if year >= 2024:
+                yearly_pages[year] = urljoin(base_url, link['href'])
+
+    return yearly_pages
+
 # Main script execution
 def main_02_02_ktb():
     Session = sessionmaker(bind=engine)
@@ -232,11 +260,25 @@ def main_02_02_ktb():
 
     # URL
     base_url = "https://istanbul.ktb.gov.tr/"
-    url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"  #
-    html_content = fetch_page_content(url)
+    #url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"  #
+    url = "https://istanbul.ktb.gov.tr/TR-276884/turizm-istatistik-raporlari.html"
+    yearly_pages = find_yearly_pages(url)
 
-    if html_content:
+    if not yearly_pages:
+        print("No yearly pages found.")
+        return
+    
+    all_dataframes = []
+
+    #
+    for year, url in sorted(yearly_pages.items(), reverse=True):
+        print(f"Processing year: {year}")
         
+        html_content = fetch_page_content(url)
+        if not html_content:
+            print(f"Failed to fetch {url}")
+            continue
+
         pdf_links = find_pdf_links_with_base_url(html_content, base_url)
 
         if not pdf_links:
