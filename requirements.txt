@@ -1,0 +1,10 @@
+requests
+urllib3
+beautifulsoup4
+PyPDF2
+pdfplumber
+pandas
+
+alembic
+psycopg2-binary
+sqlalchemy
