@@ -320,8 +320,8 @@ def main_02_02_ktb():
     session.close()
     print("Database update complete.")
 
-#def run_main_02_02_ktb():
-    #main_02_02_ktb()
+def run_main_02_02_ktb():
+    main_02_02_ktb()
 
-if __name__ == "__main__":
- main_02_02_ktb()
+#if __name__ == "__main__":
+# main_02_02_ktb()
