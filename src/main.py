@@ -180,7 +180,7 @@ def extract_from_pdf(page_text, latest_month):
         "Tuzla (D)", "Pendik (D)", "Ambarlı (D)", "Zeytinburnu (D)", "Toplam"
     ]
 
-##################
+
     if extracted_data:
         # Check column number
         for idx, row in enumerate(extracted_data):
@@ -190,11 +190,11 @@ def extract_from_pdf(page_text, latest_month):
         expected_columns = len(havalimanlari)
         for idx, row in enumerate(extracted_data):
             if len(row) != expected_columns:
-                print(f"❌ Error! Row {idx}: {row} (Expected: {expected_columns}, Available: {len(row)})")
+                print(f" Error! Row {idx}: {row} (Expected: {expected_columns}, Available: {len(row)})")
 
         df = pd.DataFrame(extracted_data, columns=havalimanlari)
 
-        # *** MELT ***
+        # Melt
         df_melted = df.melt(id_vars=["tarih"], var_name="sinir_kapilari", value_name="yabanci_ziyaretci")
 
         #print("\nMelted DataFrame:")
@@ -260,7 +260,6 @@ def main_02_02_ktb():
 
     # URL
     base_url = "https://istanbul.ktb.gov.tr/"
-    #url = "https://istanbul.ktb.gov.tr/TR-368430/istanbul-turizm-istatistikleri---2024.html"  #
     url = "https://istanbul.ktb.gov.tr/TR-276884/turizm-istatistik-raporlari.html"
     yearly_pages = find_yearly_pages(url)
 
@@ -295,7 +294,6 @@ def main_02_02_ktb():
                     df = extract_from_pdf(page_text, latest_month)
                     
                     if df is not None:
-                        #df['source'] = pdf_path  # Delete this
                         all_dataframes.append(df)
 
             if all_dataframes is not None:
@@ -322,6 +320,3 @@ def main_02_02_ktb():
 
 def run_main_02_02_ktb():
     main_02_02_ktb()
-
-#if __name__ == "__main__":
-# main_02_02_ktb()
